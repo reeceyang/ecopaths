@@ -9,10 +9,10 @@
     <meta name="description" content=""> 
     <meta name="author" content="reece yang">
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,7 +39,7 @@
             max-width: 45em;
             margin: auto;
             text-align: center;
-            font-size: 14pt;
+            font-size: 1.16em;
             min-height: 100vh;
             display: grid;
             grid-template-rows: 1fr auto;
@@ -120,15 +120,16 @@
 
         <section>
             <h2>✈️ flying</h2>
-            <p class="hidden" id="flying-p">⏱<span id="flying-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
+            <p class="hidden" id="flying-p"><span id="airports"></span><br>
+                ⏱<span id="flying-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
                     id="flying-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️<span id="flying-carbon"></span> g carbon emitted<sup>1</sup></p>
-            <p class="hidden" id="flying-unavailable">unavailable :(</p>
+            <p class="hidden" id="flying-unavailable">unavailable</p>
         </section>
         <section>
             <h2>🚗 driving</h2>
             <p class="hidden" id="driving-p">⏱<span id="driving-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
                     id="driving-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️<span id="driving-carbon"></span> g carbon emitted<sup>2</sup></p>
-            <p class="hidden" id="driving-unavailable">unavailable :(</p>
+            <p class="hidden" id="driving-unavailable">unavailable</p>
         </section>
         <section>
             <h2>🚄 public transit</h2>
@@ -139,13 +140,13 @@
         <section>
             <h2>🚶 walking</h2>
             <p class="hidden" id="walking-p">⏱<span id="walking-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
-                    id="walking-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️ <span id="walking-carbon"></span> g carbon emitted<sup>4</sup></p>
+                    id="walking-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️ <span id="walking-carbon"></span> g carbon emitted</p>
             <p class="hidden" id="walking-unavailable">unavailable :(</p>
         </section>
         <section>
             <h2>🚴 bicycling</h2>
             <p class="hidden" id="bicycling-p">⏱<span id="bicycling-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
-                    id="bicycling-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️ <span id="bicycling-carbon"></span> g carbon emitted<sup>5</sup></p>
+                    id="bicycling-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️ <span id="bicycling-carbon"></span> g carbon emitted</p>
             <p class="hidden" id="bicycling-unavailable">unavailable :(</p>
         </section>
         <!-- <div id="error-box"><br></div> -->
@@ -153,31 +154,84 @@
 
     <footer>
         <!-- <a id="share-link">share</a> -->
-        <em>
-            <p>made with &lt;3 by <a href="https://github.com/reeceyang">reece</a>. view <a
-                    href="r">source</a>.
-        </em>
-        <p><sup>2</sup><a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle">According to the EPA,</a>
+        <p><sup>1</sup>https://www.schiphol.nl/en/you-and-schiphol/page/five-questions-about-aircraft/ approx 900 km/h for airplane speed
+        https://theicct.org/publications/co2-emissions-commercial-aviation-2020
+            “On average, passenger aviation emitted 90 grams of CO2 per passenger-kilometer in 2019”
+        assuming a direct flight</p>
+        <p><sup>2</sup><a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle">The EPA reports,</a>
         “The average passenger vehicle emits about 404 grams of CO<sub>2</sub> per mile.”</p>
         <p><sup>3</sup><a href-"https://www.transit.dot.gov/sites/fta.dot.gov/files/docs/PublicTransportationsRoleInRespondingToClimateChange2010.pdf">According to the FTA,</a> 
         “U.S. bus transit…emits an estimated 33% lower
         greenhouse gas emissions per passenger mile than the average U.S. single occupancy vehicle.”</p>
+        <em>
+            <p>made with &lt;3 by <a href="https://github.com/reeceyang">reece</a>. view <a href="r">source</a>.
+        </em>
     </footer>
 </body>
 
 <script>
-    
+    // function haversine(lat1, lng1, lat2, lng2) {
+    //     function toRad(deg) {
+    //         return deg * Math.PI /180;
+    //     }
+    //     const R = 6371; // km
+    //     const dLat = toRad(lat1 - lat2);
+    //     const dLng = toRad(lng1 - lng2);
+    //     return 2 * R * Math.asin(Math.sqrt(Math.sin(dLat/2)* Math.sin(dLat / 2) + Math.cos(lat1) * Math.cos(lat2)*Math.sin(dLng/2)* Math.sin(dLng / 2)));
+    // }
     document.querySelector("#go").addEventListener("click", () => {
         fetchData("DRIVING");
         fetchData("TRANSIT");
         fetchData("WALKING");
         fetchData("BICYCLING");
+        fetchFlightData();
     });
-    const MODE_TO_CARBON = {"DRIVING": 404, "TRANSIT": 404 * 0.67, "WALKING": 0, "BICYCLING": 0}
+    const MODE_TO_CARBON = {"FLYING": 90 / 1000,"DRIVING": 404, "TRANSIT": 404 * 0.67, "WALKING": 0, "BICYCLING": 0}
 
     var service;
     function initMap() {
         service = new google.maps.DistanceMatrixService(); // instantiate Distance Matrix service
+    }
+    
+    async function fetchFlightData() {
+        start = document.querySelector("#start").value + " airport";
+        end = document.querySelector("#end").value + " airport";
+        const API_KEY = "AIzaSyDYgaKe3J0NUErXA4KkM2XlA51qbyg4Bk8";
+        url = "https://cors.reeceyang.workers.dev/?" 
+                + `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?fields=name%2Cgeometry&input=${encodeURIComponent(start)}&inputtype=textquery&key=${API_KEY}`;        
+        console.log(url);
+        function distance(lat1, lng1, lat2, lng2) {
+            return google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(lat1, lng1), new google.maps.LatLng(lat2, lng2));
+        }
+        fetch(url)
+            .then(response => response.json())
+            .then((data) => {
+                
+                url = "https://cors.reeceyang.workers.dev/?"
+                    + `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?fields=name%2Cgeometry&input=${encodeURIComponent(end)}&inputtype=textquery&key=${API_KEY}`;
+                console.log(url);
+                fetch(url)
+                    .then(response => response.json())
+                    .then((data2) => {
+                        start = {
+                            name: data.candidates[0].name,
+                            coords: [data.candidates[0].geometry.location.lat, data.candidates[0].geometry.location.lng],
+                        }
+                        end = {
+                            name: data2.candidates[0].name,
+                            coords: [data2.candidates[0].geometry.location.lat, data2.candidates[0].geometry.location.lng],
+                        }
+                        d = distance(start.coords[0], start.coords[1], end.coords[0], end.coords[1]);
+                        mode = "FLYING";
+                        console.log(d);
+                        document.querySelector("#airports").innerHTML = "from " + start.name + " to " + end.name;
+                        document.querySelector(`#${mode.toLowerCase()}-carbon`).innerHTML = Math.round(d * MODE_TO_CARBON[mode]);
+                        document.querySelector(`#${mode.toLowerCase()}-time`).innerHTML = Math.round(d / 1000 / 900 ) + " hours " + Math.round((d / 900 * 1000 / 60) % 60) + " mins";
+                        document.querySelector(`#${mode.toLowerCase()}-distance`).innerHTML = Math.round(d * 0.000621371) + " miles";
+                        document.querySelector(`#${mode.toLowerCase()}-p`).classList.remove("hidden");
+                        document.querySelector(`#${mode.toLowerCase()}-unavailable`).classList.add("hidden");
+                    });
+            });
     }
 
     async function fetchData(mode) {
@@ -190,8 +244,8 @@
         //     .then(response => response.json())
         //     .then(data => doStuff(data, mode));
         const matrixOptions = {
-            origins: [start], // technician locations
-            destinations: [end], // customer address
+            origins: [start],
+            destinations: [end],
             travelMode: mode,
             unitSystem: google.maps.UnitSystem.IMPERIAL
         };
@@ -214,6 +268,6 @@
     }
 </script>
 <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDYgaKe3J0NUErXA4KkM2XlA51qbyg4Bk8&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDYgaKe3J0NUErXA4KkM2XlA51qbyg4Bk8&libraries=geometry&callback=initMap">
     </script>
 </html>
