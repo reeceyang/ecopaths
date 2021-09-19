@@ -1,0 +1,219 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>ecopaths</title>
+    <meta name="description" content=""> 
+    <meta name="author" content="reece yang">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="luce.css/luce.css">
+    <style>
+        /* https://coolors.co/8ecae6-219ebc-023047-ffb703-fb8500 */
+        :root {
+            --luce-background: #52b788;
+            --luce-background-darker: #eee;
+            --luce-border: #ccc;
+            --luce-hover: #ddd;
+            --luce-text: black;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            max-width: 45em;
+            margin: auto;
+            text-align: center;
+            font-size: 14pt;
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: 1fr auto;
+        }
+
+        main {
+            margin-top: 15rem;
+        }
+
+        textarea {
+            width: 60%;
+            height: 10em;
+        }
+
+        input {
+            margin: 2rem auto;
+        }
+
+        footer {
+            color: var(--text);
+            text-decoration: none;
+            margin-bottom: 1em;
+            margin-top: 3em;
+        }
+
+        footer a {
+            color: inherit;
+            text-decoration: inherit;
+            cursor: pointer;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        p.error {
+            padding: 0.2em;
+            text-align: center;
+            opacity: 1;
+            animation: fadeout 2s;
+            animation-fill-mode: forwards;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        p .startfade {
+            opacity: 0;
+        }
+
+        @keyframes fadeout {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        #error-box {
+            max-height: 1em;
+        }
+    </style>
+
+</head>
+
+<body>
+    <main>
+        <h1>ecopaths</h1>
+
+        <input href="#" type="text" id="start" autocomplete="off" placeholder="starting location" class="luce-input">
+        <input href="#" type="text" id="end" autocomplete="off" placeholder="destination" class="luce-input">
+        <button type="button" id="go" class="luce-button">go</button>
+        
+        <section><div id="map"></div></section>
+
+        <section>
+            <h2>✈️ flying</h2>
+            <p class="hidden" id="flying-p">⏱<span id="flying-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
+                    id="flying-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️<span id="flying-carbon"></span> g carbon emitted<sup>1</sup></p>
+            <p class="hidden" id="flying-unavailable">unavailable :(</p>
+        </section>
+        <section>
+            <h2>🚗 driving</h2>
+            <p class="hidden" id="driving-p">⏱<span id="driving-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
+                    id="driving-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️<span id="driving-carbon"></span> g carbon emitted<sup>2</sup></p>
+            <p class="hidden" id="driving-unavailable">unavailable :(</p>
+        </section>
+        <section>
+            <h2>🚄 public transit</h2>
+            <p class="hidden" id="transit-p">⏱<span id="transit-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
+                    id="transit-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️<span id="transit-carbon"></span> g carbon emitted<sup>3</sup></p>
+            <p class="hidden" id="transit-unavailable">unavailable :(</p>
+        </section>
+        <section>
+            <h2>🚶 walking</h2>
+            <p class="hidden" id="walking-p">⏱<span id="walking-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
+                    id="walking-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️ <span id="walking-carbon"></span> g carbon emitted<sup>4</sup></p>
+            <p class="hidden" id="walking-unavailable">unavailable :(</p>
+        </section>
+        <section>
+            <h2>🚴 bicycling</h2>
+            <p class="hidden" id="bicycling-p">⏱<span id="bicycling-time">time</span>&nbsp;&nbsp;&nbsp;&nbsp;📏<span
+                    id="bicycling-distance">distance</span>&nbsp;&nbsp;&nbsp;&nbsp;🌫️ <span id="bicycling-carbon"></span> g carbon emitted<sup>5</sup></p>
+            <p class="hidden" id="bicycling-unavailable">unavailable :(</p>
+        </section>
+        <!-- <div id="error-box"><br></div> -->
+    </main>
+
+    <footer>
+        <!-- <a id="share-link">share</a> -->
+        <em>
+            <p>made with &lt;3 by <a href="https://github.com/reeceyang">reece</a>. view <a
+                    href="r">source</a>.
+        </em>
+        <p><sup>2</sup><a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle">According to the EPA,</a>
+        “The average passenger vehicle emits about 404 grams of CO<sub>2</sub> per mile.”</p>
+        <p><sup>3</sup><a href-"https://www.transit.dot.gov/sites/fta.dot.gov/files/docs/PublicTransportationsRoleInRespondingToClimateChange2010.pdf">According to the FTA,</a> 
+        “U.S. bus transit…emits an estimated 33% lower
+        greenhouse gas emissions per passenger mile than the average U.S. single occupancy vehicle.”</p>
+    </footer>
+</body>
+
+<script>
+    
+    document.querySelector("#go").addEventListener("click", () => {
+        fetchData("DRIVING");
+        fetchData("TRANSIT");
+        fetchData("WALKING");
+        fetchData("BICYCLING");
+    });
+    const MODE_TO_CARBON = {"DRIVING": 404, "TRANSIT": 404 * 0.67, "WALKING": 0, "BICYCLING": 0}
+
+    var service;
+    function initMap() {
+        service = new google.maps.DistanceMatrixService(); // instantiate Distance Matrix service
+    }
+
+    async function fetchData(mode) {
+        start = document.querySelector("#start").value;
+        end = document.querySelector("#end").value;
+        // const API_KEY = "AIzaSyDYgaKe3J0NUErXA4KkM2XlA51qbyg4Bk8";
+        // url = "https://cors.reeceyang.workers.dev/?" + `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(start)}&destinations=${encodeURIComponent(end)}&units=imperial&travelmode=${mode}&key=${API_KEY}`;
+        // console.log(url);
+        // fetch(url)
+        //     .then(response => response.json())
+        //     .then(data => doStuff(data, mode));
+        const matrixOptions = {
+            origins: [start], // technician locations
+            destinations: [end], // customer address
+            travelMode: mode,
+            unitSystem: google.maps.UnitSystem.IMPERIAL
+        };
+        // Call Distance Matrix service
+        service.getDistanceMatrix(matrixOptions, (data) => {doStuff(data, mode)});
+    }
+    function doStuff(data,mode) {
+        console.log(data)
+        try { 
+            document.querySelector(`#${mode.toLowerCase()}-carbon`).innerHTML = Math.round(data.rows[0].elements[0].distance.value * 0.000621371 * MODE_TO_CARBON[mode]);
+            document.querySelector(`#${mode.toLowerCase()}-time`).innerHTML = data.rows[0].elements[0].duration.text;
+            document.querySelector(`#${mode.toLowerCase()}-distance`).innerHTML = data.rows[0].elements[0].distance.text;
+            document.querySelector(`#${mode.toLowerCase()}-p`).classList.remove("hidden");
+            document.querySelector(`#${mode.toLowerCase()}-unavailable`).classList.add("hidden");
+        } catch (TypeError) {
+            document.querySelector(`#${mode.toLowerCase()}-p`).classList.add("hidden");
+            document.querySelector(`#${mode.toLowerCase()}-unavailable`).classList.remove("hidden");
+        }
+        
+    }
+</script>
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDYgaKe3J0NUErXA4KkM2XlA51qbyg4Bk8&callback=initMap">
+    </script>
+</html>
