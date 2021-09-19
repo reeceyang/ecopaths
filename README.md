@@ -1,10 +1,4 @@
-# think of name
-hackmit2021 project
+# ecopaths
+make sustainable transportation choices for your next trip
 
-- [] map of start and end locations
-- [] carbon offset prices
-- [] share link
-- [] autocomplete
-- [] switch between metric and us units 
-- [] css and design stuff
-- [] responsivity
+Ecopaths allows users to compare carbon emissions of different transportation modes from a starting location to a destination. The web app pulls data from the Google Maps API and communicates it in a user-friendly format.
