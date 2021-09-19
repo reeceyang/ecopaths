@@ -6,7 +6,7 @@
     <meta charset="utf-8">
 
     <title>ecopaths</title>
-    <meta name="description" content=""> 
+    <meta name="description" content="make sustainable transportation choices for your next trip"> 
     <meta name="author" content="reece yang">
 
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -66,44 +66,26 @@
         }
 
         footer a {
-            color: inherit;
+            color: #333;
             text-decoration: inherit;
             cursor: pointer;
         }
 
         footer a:hover {
-            text-decoration: underline;
-        }
-
-        p.error {
-            padding: 0.2em;
-            text-align: center;
-            opacity: 1;
-            animation: fadeout 2s;
-            animation-fill-mode: forwards;
+            transition: 0.5s;
+            color: inherit;
         }
 
         .hidden {
             display: none;
         }
 
-        p .startfade {
-            opacity: 0;
+        #map {
+            height: 25rem;
+            width: 100%;
+            margin-bottom: 1em;
         }
 
-        @keyframes fadeout {
-            from {
-                opacity: 1;
-            }
-
-            to {
-                opacity: 0;
-            }
-        }
-
-        #error-box {
-            max-height: 1em;
-        }
     </style>
 
 </head>
@@ -116,7 +98,7 @@
         <input href="#" type="text" id="end" autocomplete="off" placeholder="destination" class="luce-input">
         <button type="button" id="go" class="luce-button">go</button>
         
-        <section><div id="map"></div></section>
+        <section><div id="map" class="hidden"></div></section>
 
         <section>
             <h2>✈️ flying</h2>
@@ -154,10 +136,10 @@
 
     <footer>
         <!-- <a id="share-link">share</a> -->
-        <p><sup>1</sup>https://www.schiphol.nl/en/you-and-schiphol/page/five-questions-about-aircraft/ approx 900 km/h for airplane speed
-        https://theicct.org/publications/co2-emissions-commercial-aviation-2020
-            “On average, passenger aviation emitted 90 grams of CO2 per passenger-kilometer in 2019”
-        assuming a direct flight</p>
+        <p><sup>1</sup><a href="https://www.schiphol.nl/en/you-and-schiphol/page/five-questions-about-aircraft/">According to data from Amsterdam Airport Schiphol</a>, the average commercial aircraft travels at approximately 900 km/h.
+        <a href="https://theicct.org/publications/co2-emissions-commercial-aviation-2020">The International Council on Clean Transportation writes, </a>
+        “On average, passenger aviation emitted 90 grams of CO2 per passenger-kilometer in 2019.” 
+        We assume that flights travel directly from their starting location to their destination in our calculations, and carbon emissions are averaged per passenger.</p>
         <p><sup>2</sup><a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle">The EPA reports,</a>
         “The average passenger vehicle emits about 404 grams of CO<sub>2</sub> per mile.”</p>
         <p><sup>3</sup><a href-"https://www.transit.dot.gov/sites/fta.dot.gov/files/docs/PublicTransportationsRoleInRespondingToClimateChange2010.pdf">According to the FTA,</a> 
@@ -185,14 +167,59 @@
         fetchData("WALKING");
         fetchData("BICYCLING");
         fetchFlightData();
+        getMap();
     });
     const MODE_TO_CARBON = {"FLYING": 90 / 1000,"DRIVING": 404, "TRANSIT": 404 * 0.67, "WALKING": 0, "BICYCLING": 0}
 
     var service;
+    let map;
     function initMap() {
+        
         service = new google.maps.DistanceMatrixService(); // instantiate Distance Matrix service
     }
-    
+    function distance(lat1, lng1, lat2, lng2) {
+        return google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(lat1, lng1), new google.maps.LatLng(lat2, lng2));
+    }
+    async function getMap() {
+        start = document.querySelector("#start").value;
+        end = document.querySelector("#end").value;
+        const API_KEY = "AIzaSyDYgaKe3J0NUErXA4KkM2XlA51qbyg4Bk8";
+        url = "https://cors.reeceyang.workers.dev/?"
+            + `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?fields=name%2Cgeometry&input=${encodeURIComponent(start)}&inputtype=textquery&key=${API_KEY}`;
+        
+        document.getElementById('map').innerHTML = "";
+        document.getElementById('map').classList.remove("hidden");
+        fetch(url)
+            .then(response => response.json())
+            .then((data) => {
+
+                url = "https://cors.reeceyang.workers.dev/?"
+                    + `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?fields=name%2Cgeometry&input=${encodeURIComponent(end)}&inputtype=textquery&key=${API_KEY}`;
+                console.log(url);
+                fetch(url)
+                    .then(response => response.json())
+                    .then((data2) => {
+                        start = {
+                            name: data.candidates[0].name,
+                            coords: [data.candidates[0].geometry.location.lat, data.candidates[0].geometry.location.lng],
+                        }
+                        end = {
+                            name: data2.candidates[0].name,
+                            coords: [data2.candidates[0].geometry.location.lat, data2.candidates[0].geometry.location.lng],
+                        }
+                        let d = distance(start.coords[0], start.coords[1], end.coords[0], end.coords[1]);
+                        map = new google.maps.Map(document.getElementById('map'), {
+                            zoom: 20 - Math.log(d),
+                            center: { lat: (start.coords[0] + end.coords[0]) / 2, lng: (start.coords[1] + end.coords[1]) / 2 }
+                        });
+                        let mk1 = new google.maps.Marker({ position: {lat: start.coords[0], lng: start.coords[1]}, map: map });
+                        let mk2 = new google.maps.Marker({ position: { lat: end.coords[0], lng: end.coords[1] }, map: map });
+                        successful = true;
+                    });
+            });
+        
+    }
+
     async function fetchFlightData() {
         start = document.querySelector("#start").value + " airport";
         end = document.querySelector("#end").value + " airport";
@@ -200,9 +227,7 @@
         url = "https://cors.reeceyang.workers.dev/?" 
                 + `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?fields=name%2Cgeometry&input=${encodeURIComponent(start)}&inputtype=textquery&key=${API_KEY}`;        
         console.log(url);
-        function distance(lat1, lng1, lat2, lng2) {
-            return google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(lat1, lng1), new google.maps.LatLng(lat2, lng2));
-        }
+        
         fetch(url)
             .then(response => response.json())
             .then((data) => {
@@ -266,6 +291,11 @@
         }
         
     }
+    window.addEventListener("keydown", function (event) {
+        if (event.key == "Enter") {
+            document.querySelector("#go").click();
+        }
+    });
 </script>
 <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDYgaKe3J0NUErXA4KkM2XlA51qbyg4Bk8&libraries=geometry&callback=initMap">
